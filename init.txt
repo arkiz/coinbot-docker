@@ -1,0 +1,2 @@
+# backup 
+docker-compose exec mysql mysqldump -u coinbot -p coinbot_dev > backup_before_schema_update_$(date +%Y%m%d_%H%M%S).sql

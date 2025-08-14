@@ -1,0 +1,26 @@
+# Dockerfile.dev
+FROM node:18-alpine
+
+# 개발에 필요한 도구들 설치
+RUN apk add --no-cache git curl vim bash
+
+# 작업 디렉토리 설정
+WORKDIR /app
+
+# 패키지 파일 먼저 복사 (Docker 캐시 최적화)
+COPY package*.json ./
+
+# 의존성 설치 (이 단계에서 express, mysql2, ioredis 등이 설치됨)
+RUN npm install
+
+# 개발용 글로벌 도구 설치
+RUN npm install -g nodemon
+
+# 소스 코드 복사
+COPY . .
+
+# 포트 노출
+EXPOSE 3000 9229
+
+# 개발 모드로 실행 (nodemon으로 자동 재시작)
+CMD ["npm", "run", "dev"]

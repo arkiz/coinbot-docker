@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header h1 { color: #333; margin-bottom: 10px; }
+        .user-info { color: #666; margin-bottom: 15px; }
+        .logout-btn { background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; float: right; }
+        .logout-btn:hover { background: #c82333; }
+        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .alert { padding: 12px; border-radius: 4px; margin-bottom: 20px; }
+        .alert.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .alert.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        
+        /* 설정 없음 상태 스타일 */
+        .no-settings { text-align: center; padding: 40px 20px; }
+        .no-settings-icon { font-size: 4em; margin-bottom: 20px; opacity: 0.5; }
+        .no-settings h3 { color: #495057; margin-bottom: 15px; }
+        .no-settings p { color: #6c757d; margin-bottom: 25px; line-height: 1.6; }
+        
+        /* 봇 상태 및 제어 */
+        .bot-status { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .status-indicator { width: 12px; height: 12px; border-radius: 50%; }
+        .status-running { background: #28a745; }
+        .status-stopped { background: #dc3545; }
+        .status-text { font-weight: 500; }
+        
+        /* 설정 요약 스타일 */
+        .settings-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .setting-item { background: #f8f9fa; padding: 12px; border-radius: 6px; }
+        .setting-label { font-size: 12px; color: #6c757d; margin-bottom: 4px; }
+        .setting-value { font-weight: 500; color: #333; }
+        
+        /* 버튼 스타일 */
+        .btn { background: #007bff; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; margin-right: 10px; font-size: 14px; }
+        .btn:hover { background: #0056b3; }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #218838; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-large { padding: 15px 30px; font-size: 16px; }
+        
+        /* 테이블 스타일 */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #f8f9fa; font-weight: 500; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        
+        /* 빈 상태 메시지 */
+        .empty-state { text-align: center; color: #666; padding: 40px 20px; }
+        .empty-state-icon { font-size: 3em; margin-bottom: 15px; opacity: 0.3; }
+    </style>
+    
+    <script>
+        // ✅ 금액 포맷팅 함수 (천원 단위 표기)
+        function formatCurrency(amount) {
+            if (!amount) return '₩0';
+            
+            const formatted = amount.toLocaleString('ko-KR');
+            let unit = '';
+            
+            if (amount >= 100000000) {
+                unit = ` (${Math.floor(amount / 100000000)}억${amount % 100000000 >= 10000000 ? ' ' + Math.floor((amount % 100000000) / 10000000) + '천만' : ''}원)`;
+            } else if (amount >= 10000000) {
+                unit = ` (${Math.floor(amount / 10000000)}천만원)`;
+            } else if (amount >= 1000000) {
+                unit = ` (${Math.floor(amount / 1000000)}백만원)`;
+            } else if (amount >= 10000) {
+                unit = ` (${Math.floor(amount / 10000)}만원)`;
+            } else if (amount >= 1000) {
+                unit = ` (${Math.floor(amount / 1000)}천원)`;
+            }
+            
+            return `₩${formatted}${unit}`;
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="logout-btn" onclick="document.getElementById('logout-form').submit()">로그아웃</button>
+            <form id="logout-form" action="/auth/logout" method="POST" style="display: none;"></form>
+            
+            <h1><%= title %></h1>
+            <div class="user-info">환영합니다, <%= user.username %>님</div>
+        </div>
+
+        <% if (success && success.length > 0) { %>
+            <div class="alert success"><%= success[0] %></div>
+        <% } %>
+        <% if (error && error.length > 0) { %>
+            <div class="alert error"><%= error[0] %></div>
+        <% } %>
+
+        <!-- ✅ 설정 상태에 따른 조건부 렌더링 -->
+        <% if (!botSettings.hasSettings) { %>
+            <!-- 설정이 없는 경우 -->
+            <div class="card">
+                <div class="no-settings">
+                    <div class="no-settings-icon">⚙️</div>
+                    <h3>봇 설정이 필요합니다</h3>
+                    <p>
+                        아직 개인 김프 봇 설정을 하지 않으셨네요.<br>
+                        봇을 사용하시려면 먼저 기본 설정을 완료해주세요.
+                    </p>
+                    <a href="/dashboard/settings" class="btn btn-large">🚀 지금 설정하기</a>
+                </div>
+            </div>
+            
+            <div class="alert info">
+                <strong>💡 설정 가이드:</strong> 검색 주기, 프리미엄 임계값, 거래 금액 등을 설정하여 나만의 김프 봇을 만들어보세요.
+            </div>
+        <% } else { %>
+            <!-- 설정이 있는 경우 -->
+            <div class="card">
+                <h2>🤖 내 봇 현황</h2>
+                <div class="bot-status">
+                    <div class="status-indicator <%= botSettings.bot_enabled ? 'status-running' : 'status-stopped' %>"></div>
+                    <div class="status-text">
+                        봇 상태: <%= botSettings.bot_enabled ? '실행 중' : '중지됨' %>
+                    </div>
+                </div>
+                
+                <!-- ✅ 설정 요약 (가독성 좋은 형태로 표시) -->
+                <div class="settings-summary">
+                    <div class="setting-item">
+                        <div class="setting-label">검색 주기</div>
+                        <div class="setting-value"><%= botSettings.search_interval_seconds %>초</div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-label">프리미엄 임계값</div>
+                        <div class="setting-value"><%= botSettings.premium_threshold_percent %>%</div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-label">매수 조건</div>
+                        <div class="setting-value">강도 <%= botSettings.trading_intensity_threshold %> 도달 시</div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-label">최소 거래 금액</div>
+                        <div class="setting-value">
+                            <script>document.write(formatCurrency(<%= botSettings.min_trade_amount_krw %>));</script>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-label">최대 거래 금액</div>
+                        <div class="setting-value">
+                            <script>document.write(formatCurrency(<%= botSettings.max_trade_amount_krw %>));</script>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <!-- 봇 시작/정지 버튼 -->
+                    <% if (botSettings.bot_enabled) { %>
+                        <form action="/dashboard/bot/stop" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-danger">⏹️ 봇 중지</button>
+                        </form>
+                    <% } else { %>
+                        <form action="/dashboard/bot/start" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-success">🚀 봇 시작</button>
+                        </form>
+                    <% } %>
+                    
+                    <a href="/dashboard/settings" class="btn">⚙️ 설정 변경</a>
+                </div>
+            </div>
+
+            <!-- 매매강도 현황 -->
+            <div class="card">
+                <h2>📊 매매강도 현황</h2>
+                <% if (tradingIntensity && tradingIntensity.length > 0) { %>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>코인</th>
+                                <th class="text-center">현재 강도</th>
+                                <th class="text-right">최근 프리미엄</th>
+                                <th class="text-center">마지막 업데이트</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% tradingIntensity.forEach(item => { %>
+                                <tr>
+                                    <td><strong><%= item.symbol %></strong></td>
+                                    <td class="text-center">
+                                        <%= item.current_intensity %> / <%= botSettings.trading_intensity_threshold %>
+                                        <% if (item.current_intensity >= botSettings.trading_intensity_threshold) { %>
+                                            <span style="color: #dc3545;">🚨</span>
+                                        <% } %>
+                                    </td>
+                                    <td class="text-right">
+                                        <% const premiumRate=parseFloat(item.last_premium_rate); %>
+                                        <% if (!isNaN(premiumRate)) { %>
+                                            <span style="color: <%= premiumRate > 0 ? '#28a745' : (premiumRate < 0 ? '#dc3545' : '#6c757d') %>;">
+                                                <%= formatNumber(premiumRate, 2) %>%
+                                            </span>
+                                        <% } else { %>
+                                            <span style="color: #6c757d;">-</span>
+                                        <% } %>
+                                    </td>
+                                    <td class="text-center">
+                                        <%= item.last_updated ? new Date(item.last_updated).toLocaleTimeString('ko-KR') : '-' %>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                <% } else { %>
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📊</div>
+                        <p>아직 매매강도 데이터가 없습니다.<br>봇을 시작하면 데이터가 수집됩니다.</p>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- 거래 내역 -->
+            <div class="card">
+                <h2>📈 최근 거래 내역</h2>
+                <% if (tradeHistory && tradeHistory.length > 0) { %>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>거래 시간</th>
+                                <th>코인</th>
+                                <th>매수 거래소</th>
+                                <th>매도 거래소</th>
+                                <th class="text-right">거래량</th>
+                                <th class="text-right">수익</th>
+                                <th class="text-center">상태</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% tradeHistory.forEach(trade => { %>
+                                <tr>
+                                    <td><%= new Date(trade.created_at).toLocaleString('ko-KR') %></td>
+                                    <td><strong><%= trade.coin_symbol %></strong></td>
+                                    <td><%= trade.buy_exchange_name %></td>
+                                    <td><%= trade.sell_exchange_name %></td>
+                                    <td class="text-right"><%= trade.quantity %></td>
+                                    <td class="text-right">
+                                        <% if (trade.net_profit) { %>
+                                            <script>
+                                                document.write('<span style="color: ' + 
+                                                    (<%= trade.net_profit %> > 0 ? '#28a745' : '#dc3545') + 
+                                                    ';">' + formatCurrency(<%= trade.net_profit %>) + '</span>');
+                                            </script>
+                                        <% } else { %>
+                                            <span style="color: #6c757d;">-</span>
+                                        <% } %>
+                                    </td>
+                                    <td class="text-center">
+                                        <% if (trade.status === 'completed') { %>
+                                            <span style="color: #28a745;">완료</span>
+                                        <% } else if (trade.status === 'pending') { %>
+                                            <span style="color: #ffc107;">대기</span>
+                                        <% } else { %>
+                                            <span style="color: #6c757d;"><%= trade.status %></span>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                <% } else { %>
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📈</div>
+                        <p>아직 거래 내역이 없습니다.<br>봇을 시작하고 거래 조건이 맞으면 자동으로 거래가 실행됩니다.</p>
+                    </div>
+                <% } %>
+            </div>
+        <% } %>
+    </div>
+</body>
+</html>

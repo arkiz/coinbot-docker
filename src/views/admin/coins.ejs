@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header h1 { color: #333; margin-bottom: 10px; }
+        .user-info { color: #666; margin-bottom: 15px; }
+        .logout-btn { background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; float: right; }
+        .logout-btn:hover { background: #c82333; }
+        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .alert { padding: 12px; border-radius: 4px; margin-bottom: 20px; }
+        .alert.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        
+        /* 폼 스타일 */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; color: #333; }
+        .form-group input, .form-group select, .form-group textarea { 
+            width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 4px; 
+            font-size: 14px; transition: border-color 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { 
+            outline: none; border-color: #007bff; box-shadow: 0 0 0 2px rgba(0,123,255,0.25); 
+        }
+        .form-group small { color: #666; font-size: 12px; margin-top: 4px; display: block; }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .form-row-2 { grid-template-columns: 1fr 1fr; }
+        .form-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+        
+        /* 버튼 스타일 */
+        .btn { background: #007bff; color: white; border: none; padding: 10px 16px; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; margin-right: 8px; font-size: 14px; }
+        .btn:hover { background: #0056b3; }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #218838; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-secondary { background: #6c757d; }
+        .btn-secondary:hover { background: #545b62; }
+        .btn-warning { background: #ffc107; color: #212529; }
+        .btn-warning:hover { background: #e0a800; }
+        
+        /* 테이블 스타일 */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #f8f9fa; font-weight: 500; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .status-active { color: #28a745; font-weight: bold; }
+        .status-inactive { color: #dc3545; font-weight: bold; }
+        
+        /* 백 링크 */
+        .back-link { display: inline-block; margin-bottom: 15px; color: #007bff; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+        
+        /* 폼 구분선 */
+        .form-divider { border-top: 1px solid #eee; margin: 20px 0; padding-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="logout-btn" onclick="document.getElementById('logout-form').submit()">로그아웃</button>
+            <form id="logout-form" action="/auth/logout" method="POST" style="display: none;"></form>
+            
+            <h1><%= title %></h1>
+            <div class="user-info">환영합니다, <%= user.username %>님 (관리자)</div>
+            <a href="/admin" class="back-link">← 관리자 대시보드로 돌아가기</a>
+        </div>
+
+        <% if (success && success.length > 0) { %>
+            <div class="alert success"><%= success[0] %></div>
+        <% } %>
+        <% if (error && error.length > 0) { %>
+            <div class="alert error"><%= error[0] %></div>
+        <% } %>
+
+        <div class="card">
+            <h2>💰 <%= editCoin ? '코인 수정' : '새 코인 추가' %></h2>
+            <form action="/admin/coins<%= editCoin ? '/' + editCoin.id : '' %>" method="POST">
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <label for="symbol">심볼 *</label>
+                        <input type="text" id="symbol" name="symbol" 
+                               value="<%= editCoin ? editCoin.symbol : '' %>" 
+                               placeholder="BTC" style="text-transform: uppercase;" required>
+                        <small>대문자로 입력 (예: BTC, ETH)</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="name">이름 *</label>
+                        <input type="text" id="name" name="name" 
+                               value="<%= editCoin ? editCoin.name : '' %>" 
+                               placeholder="Bitcoin" required>
+                        <small>코인의 전체 이름</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="network">네트워크 *</label>
+                        <input type="text" id="network" name="network" 
+                               value="<%= editCoin ? editCoin.network : '' %>" 
+                               placeholder="BTC" required>
+                        <small>메인넷 또는 토큰 표준 (BTC, ERC20, TRC20 등)</small>
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="upbit_market">업비트 마켓</label>
+                        <input type="text" id="upbit_market" name="upbit_market" 
+                               value="<%= editCoin ? (editCoin.upbit_market || '') : '' %>" 
+                               placeholder="KRW-BTC">
+                        <small>업비트에서 사용하는 마켓명</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="binance_symbol">바이낸스 심볼</label>
+                        <input type="text" id="binance_symbol" name="binance_symbol" 
+                               value="<%= editCoin ? (editCoin.binance_symbol || '') : '' %>" 
+                               placeholder="BTCUSDT">
+                        <small>바이낸스에서 사용하는 심볼</small>
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="withdrawal_fee">출금 수수료</label>
+                        <input type="number" step="0.00000001" id="withdrawal_fee" name="withdrawal_fee" 
+                               value="<%= editCoin ? (editCoin.withdrawal_fee || '') : '' %>" 
+                               placeholder="0.0005">
+                        <small>출금 시 부과되는 수수료</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="min_withdrawal">최소 출금량</label>
+                        <input type="number" step="0.00000001" id="min_withdrawal" name="min_withdrawal" 
+                               value="<%= editCoin ? (editCoin.min_withdrawal || '') : '' %>" 
+                               placeholder="0.001">
+                        <small>최소 출금 가능 수량</small>
+                    </div>
+                </div>
+
+                <div class="form-divider"></div>
+
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="description">설명</label>
+                        <textarea id="description" name="description" rows="3" placeholder="코인에 대한 간단한 설명"><%= editCoin ? (editCoin.description || '') : '' %></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="website_url">공식 웹사이트</label>
+                        <input type="url" id="website_url" name="website_url" 
+                               value="<%= editCoin ? (editCoin.website_url || '') : '' %>" 
+                               placeholder="https://bitcoin.org">
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="is_active">모니터링 활성화</label>
+                        <select id="is_active" name="is_active" required>
+                            <option value="true" <%= editCoin && editCoin.is_active ? 'selected' : '' %>>활성</option>
+                            <option value="false" <%= editCoin && !editCoin.is_active ? 'selected' : '' %>>비활성</option>
+                        </select>
+                        <small>김프 모니터링 대상 포함 여부</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="is_tradable">실거래 허용</label>
+                        <select id="is_tradable" name="is_tradable" required>
+                            <option value="true" <%= editCoin && editCoin.is_tradable ? 'selected' : '' %>>허용</option>
+                            <option value="false" <%= editCoin && !editCoin.is_tradable ? 'selected' : '' %>>모니터링만</option>
+                        </select>
+                        <small>실제 거래 실행 허용 여부</small>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <button type="submit" class="btn">
+                        <%= editCoin ? '💾 수정 저장' : '➕ 코인 추가' %>
+                    </button>
+                    <% if (editCoin) { %>
+                        <a href="/admin/coins" class="btn btn-secondary">취소</a>
+                        <a href="/admin/coins/<%= editCoin.id %>/audit" class="btn btn-warning">📋 변경 이력</a>
+                    <% } %>
+                </div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>📊 등록된 코인 목록 (<%= coins.length %>개)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">ID</th>
+                        <th>심볼</th>
+                        <th>이름</th>
+                        <th>네트워크</th>
+                        <th class="text-right">출금 수수료</th>
+                        <th class="text-right">최소 출금</th>
+                        <th class="text-center">모니터링</th>
+                        <th class="text-center">거래</th>
+                        <th style="width: 200px;">관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% coins.forEach(coin => { %>
+                        <tr>
+                            <td><%= coin.id %></td>
+                            <td><strong><%= coin.symbol %></strong></td>
+                            <td><%= coin.name %></td>
+                            <td><%= coin.network %></td>
+                            <td class="text-right">
+                                <%= coin.withdrawal_fee ? coin.withdrawal_fee : '-' %>
+                            </td>
+                            <td class="text-right">
+                                <%= coin.min_withdrawal ? coin.min_withdrawal : '-' %>
+                            </td>
+                            <td class="text-center">
+                                <span class="<%= coin.is_active ? 'status-active' : 'status-inactive' %>">
+                                    <%= coin.is_active ? '활성' : '비활성' %>
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="<%= coin.is_tradable ? 'status-active' : 'status-inactive' %>">
+                                    <%= coin.is_tradable ? '허용' : '모니터링만' %>
+                                </span>
+                            </td>
+                            <td>
+                                <a href="/admin/coins/edit/<%= coin.id %>" class="btn" style="font-size: 12px; padding: 6px 10px;">수정</a>
+                                <form action="/admin/coins/<%= coin.id %>/toggle/is_active" method="POST" style="display: inline;">
+                                    <button type="submit" class="btn <%= coin.is_active ? 'btn-danger' : 'btn-success' %>" style="font-size: 12px; padding: 6px 10px;">
+                                        <%= coin.is_active ? '비활성' : '활성' %>
+                                    </button>
+                                </form>
+                                <a href="/admin/coins/<%= coin.id %>/audit" class="btn btn-warning" style="font-size: 12px; padding: 6px 10px;">이력</a>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+
+        <% if (recentLogs && recentLogs.length > 0) { %>
+        <div class="card">
+            <h2>📋 최근 변경 이력</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>시간</th>
+                        <th>코인</th>
+                        <th>작업</th>
+                        <th>필드</th>
+                        <th>이전 → 변경</th>
+                        <th>변경자</th>
+                        <th>사유</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% recentLogs.forEach(log => { %>
+                        <tr>
+                            <td><%= new Date(log.created_at).toLocaleString('ko-KR') %></td>
+                            <td><strong><%= log.coin_symbol %></strong></td>
+                            <td>
+                                <% if (log.action_type === 'CREATE') { %>
+                                    <span style="color: #28a745;">생성</span>
+                                <% } else if (log.action_type === 'UPDATE') { %>
+                                    <span style="color: #007bff;">수정</span>
+                                <% } else if (log.action_type === 'DELETE') { %>
+                                    <span style="color: #dc3545;">삭제</span>
+                                <% } else { %>
+                                    <span style="color: #ffc107;">토글</span>
+                                <% } %>
+                            </td>
+                            <td><%= log.field_name || '-' %></td>
+                            <td>
+                                <% if (log.old_value && log.new_value) { %>
+                                    <code><%= log.old_value %></code> → <code><%= log.new_value %></code>
+                                <% } else if (log.new_value) { %>
+                                    <code><%= log.new_value %></code>
+                                <% } else { %>
+                                    -
+                                <% } %>
+                            </td>
+                            <td><%= log.changed_by_name || '시스템' %></td>
+                            <td><%= log.change_reason || '-' %></td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+        <% } %>
+    </div>
+
+    <script>
+        // 심볼 입력 시 자동으로 마켓명 생성
+        document.getElementById('symbol').addEventListener('input', function() {
+            const symbol = this.value.toUpperCase();
+            const upbitMarket = document.getElementById('upbit_market');
+            const binanceSymbol = document.getElementById('binance_symbol');
+            
+            if (symbol && !upbitMarket.value) {
+                upbitMarket.value = `KRW-${symbol}`;
+            }
+            if (symbol && !binanceSymbol.value) {
+                binanceSymbol.value = `${symbol}USDT`;
+            }
+        });
+
+        // 삭제 확인
+        function confirmDelete(symbol) {
+            return confirm(`정말로 ${symbol} 코인을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없으며, 관련된 모든 데이터가 삭제됩니다.`);
+        }
+    </script>
+</body>
+</html>

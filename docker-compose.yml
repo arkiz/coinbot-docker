@@ -1,0 +1,111 @@
+name: coinbot
+
+services:
+  # Node.js 메인 애플리케이션
+  app:
+    build:
+      context: ./src
+      dockerfile: Dockerfile.dev
+    working_dir: /app
+    ports:
+      - "3000:3000"      # 웹 서버 포트
+      - "9229:9229"      # 디버깅 포트
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    volumes:
+      - ./src:/app                    # 실시간 코드 변경 반영
+      - /app/node_modules             # node_modules 보호 (매우 중요!)
+      - ./logs:/app/logs              # 로그 파일 접근
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - coinbot-network
+    restart: unless-stopped
+
+  # MySQL 데이터베이스
+  mysql:
+    image: mysql:8.0
+    container_name: coinbot-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD not set}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:?MYSQL_DATABASE not set}
+      MYSQL_USER: ${MYSQL_USER:?MYSQL_USER not set}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?MYSQL_PASSWORD not set}
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-authentication-plugin=caching_sha2_password
+      --host-cache-size=0
+      --default-time-zone=+09:00
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/init:/docker-entrypoint-initdb.d
+      # - ./database/config/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+      - ./database/config/my.cnf:/etc/mysql/conf.d/my.cnf
+    networks:
+      - coinbot-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
+      - /var/run/mysqld
+
+  # Redis 캐시
+  redis:
+    image: redis:7-alpine
+    container_name: coinbot-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - coinbot-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  # 개발 도구 (선택적 실행)
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: coinbot-phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: ${MYSQL_USER}
+      PMA_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
+    networks:
+      - coinbot-network
+    profiles:
+      - dev-tools
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  coinbot-network:
+    driver: bridge

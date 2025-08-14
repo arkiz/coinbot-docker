@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header h1 { color: #333; margin-bottom: 10px; }
+        .user-info { color: #666; margin-bottom: 15px; }
+        .logout-btn { background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; float: right; }
+        .logout-btn:hover { background: #c82333; }
+        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .alert { padding: 12px; border-radius: 4px; margin-bottom: 20px; }
+        .alert.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        
+        /* 폼 스타일 */
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #333; }
+        .form-group input[type="number"] { 
+            width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; 
+            font-size: 14px; transition: border-color 0.3s;
+        }
+        .form-group input[type="number"]:focus { 
+            outline: none; border-color: #007bff; box-shadow: 0 0 0 2px rgba(0,123,255,0.25); 
+        }
+        .form-group small { color: #666; font-size: 12px; margin-top: 4px; display: block; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        /* 라디오 버튼 스타일 */
+        .radio-group { display: flex; gap: 20px; align-items: center; }
+        .radio-item { display: flex; align-items: center; gap: 8px; }
+        .radio-item input[type="radio"] { margin: 0; }
+        .radio-item label { margin: 0; font-weight: normal; cursor: pointer; }
+        
+        /* 버튼 스타일 */
+        .btn { background: #007bff; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }
+        .btn:hover { background: #0056b3; }
+        .btn-large { padding: 15px 30px; font-size: 16px; width: 100%; }
+        .btn-secondary { background: #6c757d; }
+        .btn-secondary:hover { background: #545b62; }
+        
+        /* 뒤로가기 링크 */
+        .back-link { display: inline-block; margin-top: 20px; color: #007bff; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+        
+        /* 도움말 카드 */
+        .help-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .help-card h3 { color: white; margin-bottom: 10px; }
+        
+        @media (max-width: 768px) {
+            .form-row { grid-template-columns: 1fr; }
+            .radio-group { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="logout-btn" onclick="document.getElementById('logout-form').submit()">로그아웃</button>
+            <form id="logout-form" action="/auth/logout" method="POST" style="display: none;"></form>
+            
+            <h1><%= title %></h1>
+            <div class="user-info">개인 김프 봇 설정을 관리하세요</div>
+            <a href="/dashboard" class="back-link">← 대시보드로 돌아가기</a>
+        </div>
+
+        <% if (success && success.length > 0) { %>
+            <div class="alert success"><%= success[0] %></div>
+        <% } %>
+        <% if (error && error.length > 0) { %>
+            <div class="alert error"><%= error[0] %></div>
+        <% } %>
+
+        <div class="card">
+            <h2>🤖 봇 설정</h2>
+            
+            <% if (!botSettings.hasSettings) { %>
+                <div style="background: #e3f2fd; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                    <h4 style="color: #1976d2; margin-bottom: 10px;">✨ 첫 설정을 시작합니다!</h4>
+                    <p style="color: #1565c0; margin: 0;">아래 값들을 확인하고 필요에 따라 조정한 후 저장해주세요. 권장값이 미리 설정되어 있습니다.</p>
+                </div>
+            <% } %>
+            
+            <form action="/dashboard/settings" method="POST">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="search_interval_seconds">검색 주기 (초)</label>
+                        <input type="number" id="search_interval_seconds" name="search_interval_seconds" 
+                            value="<%= botSettings.search_interval_seconds || botSettings.defaults.search_interval_seconds %>" 
+                            min="30" max="300" step="10" required>
+                        <small>코인 가격을 검색하는 주기 (30초 ~ 300초, 권장: 60초)</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="premium_threshold_percent">프리미엄 임계값 (%)</label>
+                        <input type="number" id="premium_threshold_percent" name="premium_threshold_percent" 
+                            value="<%= botSettings.premium_threshold_percent || botSettings.defaults.premium_threshold_percent %>" 
+                            step="0.1" min="0.1" max="5.0" required>
+                        <small>이 값 이상으로 김프가 벌어져야 매매강도 증가 (0.1% ~ 5.0%, 권장: 1.0%)</small>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="trading_intensity_threshold">매수 조건 임계값</label>
+                        <input type="number" id="trading_intensity_threshold" name="trading_intensity_threshold" 
+                            value="<%= botSettings.trading_intensity_threshold || botSettings.defaults.trading_intensity_threshold %>" 
+                            min="1" max="10" required>
+                        <small>매매강도가 이 값에 도달하면 거래 시도 (1 ~ 10, 권장: 5)</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="min_trade_amount_krw">최소 거래 금액 (원)</label>
+                        <input type="number" id="min_trade_amount_krw" name="min_trade_amount_krw" 
+                            value="<%= botSettings.min_trade_amount_krw || botSettings.defaults.min_trade_amount_krw %>" 
+                            min="100000" step="100000" required>
+                        <small>1회 거래 시 최소 매수 금액 (최소 10만원)</small>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="max_trade_amount_krw">최대 거래 금액 (원)</label>
+                    <input type="number" id="max_trade_amount_krw" name="max_trade_amount_krw" 
+                        value="<%= botSettings.max_trade_amount_krw || botSettings.defaults.max_trade_amount_krw %>" 
+                        min="1000000" step="1000000" required>
+                    <small>1회 거래 시 최대 매수 금액 (최소 100만원)</small>
+                </div>
+
+                <div class="form-group">
+                    <label>봇 활성화 상태</label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="bot_enabled_true" name="bot_enabled" value="true" 
+                                <%= (botSettings.bot_enabled === true) ? 'checked' : '' %>>
+                            <label for="bot_enabled_true">활성화</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="bot_enabled_false" name="bot_enabled" value="false" 
+                                <%= (botSettings.bot_enabled === false || botSettings.bot_enabled === null) ? 'checked' : '' %>>
+                            <label for="bot_enabled_false">비활성화</label>
+                        </div>
+                    </div>
+                    <small>개인 봇의 작동 여부를 설정합니다</small>
+                </div>
+
+                <button type="submit" class="btn btn-large">
+                    <%= botSettings.hasSettings ? '💾 설정 업데이트' : '🚀 설정 완료하기' %>
+                </button>
+            </form>
+        </div>
+
+        <div class="card help-card">
+            <h3>💡 설정 가이드</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                <div>
+                    <h4>검색 주기</h4>
+                    <p>너무 짧으면 API 제한에 걸릴 수 있습니다. 60초를 권장합니다.</p>
+                </div>
+                <div>
+                    <h4>프리미엄 임계값</h4>
+                    <p>시장 상황에 따라 0.5% ~ 2.0% 사이에서 조정하세요.</p>
+                </div>
+                <div>
+                    <h4>매수 조건</h4>
+                    <p>값이 클수록 신중하게 거래하지만 기회를 놓칠 수 있습니다.</p>
+                </div>
+                <div>
+                    <h4>거래 금액</h4>
+                    <p>송금 수수료를 고려하여 최소 금액을 설정하세요.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
