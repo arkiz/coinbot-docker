@@ -97,6 +97,7 @@
                         <th>등록일</th>
                         <th>마지막 로그인</th>
                         <th>관리</th>
+                        <th>Api/계좌</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -123,6 +124,11 @@
                                         <%= user.is_active ? '비활성화' : '활성화' %>
                                     </button>
                                 </form>
+                            </td>
+                            <td>
+                                <!-- 기존 버튼들... -->
+                                <a href="/admin/users/<%= user.id %>/api-keys" class="btn btn-sm">🔑 API키</a>
+                                <a href="/admin/users/<%= user.id %>/deposit-addresses" class="btn btn-sm">📮 주소</a>
                             </td>
                         </tr>
                     <% }); %>

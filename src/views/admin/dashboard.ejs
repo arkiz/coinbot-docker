@@ -74,6 +74,11 @@
                     <p>사용자 등록, 권한 관리, 상태 변경</p>
                 </div>
                 <div class="menu-item">
+                    <div class="menu-icon">🏦</div>
+                    <h3><a href="/admin/exchanges">거래소 관리</a></h3>
+                    <p>거래소 등록, 관리, 상태 변경</p>
+                </div>
+                <div class="menu-item">
                     <div class="menu-icon">📊</div>
                     <h3><a href="/api/monitoring/status">전역 김프 모니터링</a></h3>
                     <p>전체 시스템 김프 상태 확인</p>
@@ -93,4 +98,37 @@
         </div>
     </div>
 </body>
+<script>
+    // ✅ 금액 포맷팅 함수 (천원 단위 표기)
+    function formatCurrency(amount) {
+        if (amount === null || amount === undefined) return '₩0';
+        const num = parseFloat(amount);
+        if (isNaN(num)) return '₩0';
+        
+        const formatted = num.toLocaleString('ko-KR');
+        let unit = '';
+        
+        if (num >= 100000000) {
+            unit = ` (${Math.floor(num / 100000000)}억${(num % 100000000) >= 10000000 ? ' ' + Math.floor((num % 100000000) / 10000000) + '천만' : ''}원)`;
+        } else if (num >= 10000000) {
+            unit = ` (${Math.floor(num / 10000000)}천만원)`;
+        } else if (num >= 1000000) {
+            unit = ` (${Math.floor(num / 1000000)}백만원)`;
+        } else if (num >= 10000) {
+            unit = ` (${Math.floor(num / 10000)}만원)`;
+        } else if (num >= 1000) {
+            unit = ` (${Math.floor(num / 1000)}천원)`;
+        }
+        
+        return `₩${formatted}${unit}`;
+    }
+
+    // ✅ 숫자 포맷팅 함수 추가 (누락된 함수)
+    function formatNumber(value, decimalPlaces) {
+        if (value === null || value === undefined) return '-';
+        const num = parseFloat(value);
+        if (isNaN(num)) return '-';
+        return num.toFixed(decimalPlaces);
+    }
+</script>
 </html>

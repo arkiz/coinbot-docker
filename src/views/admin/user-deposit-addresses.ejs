@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; }
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn-success { background: #28a745; }
+        .btn-danger { background: #dc3545; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #f8f9fa; }
+        .alert { padding: 12px; border-radius: 4px; margin-bottom: 20px; }
+        .alert.success { background: #d4edda; color: #155724; }
+        .alert.error { background: #f8d7da; color: #721c24; }
+        .back-link { display: inline-block; margin-bottom: 15px; color: #007bff; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+        .user-info { background: #e3f2fd; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+        .user-info h3 { color: #1976d2; margin-bottom: 5px; }
+        .user-info p { color: #1565c0; margin: 0; }
+        .address-text { word-break: break-all; font-family: monospace; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1><%= title %></h1>
+            <a href="/admin/users" class="back-link">← 사용자 관리로 돌아가기</a>
+        </div>
+
+        <!-- 대상 사용자 정보 -->
+        <div class="user-info">
+            <h3>👤 관리 대상 사용자</h3>
+            <p><strong><%= targetUser.username %></strong> (<%= targetUser.email %>)</p>
+        </div>
+
+        <% if (success && success.length > 0) { %>
+            <div class="alert success"><%= success[0] %></div>
+        <% } %>
+        <% if (error && error.length > 0) { %>
+            <div class="alert error"><%= error[0] %></div>
+        <% } %>
+
+        <!-- 입금주소 추가 폼 (관리자용) -->
+        <div class="card">
+            <h2>📮 입금주소 추가/수정 (관리자 권한)</h2>
+            <form action="/admin/users/<%= targetUser.id %>/deposit-addresses" method="POST">
+                <div class="form-group">
+                    <label>거래소</label>
+                    <select name="exchange_id" required>
+                        <option value="">선택하세요</option>
+                        <% exchanges.forEach(exchange => { %>
+                            <option value="<%= exchange.id %>"><%= exchange.name %></option>
+                        <% }); %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>코인</label>
+                    <select name="symbol" required>
+                        <option value="">선택하세요</option>
+                        <% coins.forEach(coin => { %>
+                            <option value="<%= coin.symbol %>"><%= coin.symbol %> - <%= coin.name %></option>
+                        <% }); %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>입금주소</label>
+                    <input type="text" name="address" required placeholder="거래소에서 발급받은 입금주소">
+                </div>
+                <div class="form-group">
+                    <label>메모/태그 (선택사항)</label>
+                    <input type="text" name="memo" placeholder="XRP, EOS 등 메모가 필요한 코인만 입력">
+                </div>
+                <button type="submit" class="btn btn-success">💾 저장</button>
+            </form>
+        </div>
+
+        <!-- 등록된 입금주소 목록 -->
+        <div class="card">
+            <h2><%= targetUser.username %>님의 등록된 입금주소</h2>
+            <% if (addresses && addresses.length > 0) { %>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>거래소</th>
+                            <th>코인</th>
+                            <th>입금주소</th>
+                            <th>메모</th>
+                            <th>등록일</th>
+                            <th>작업</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% addresses.forEach(addr => { %>
+                            <tr>
+                                <td><%= addr.exchangeName %></td>
+                                <td>
+                                    <strong><%= addr.symbol %></strong>
+                                    <% if (addr.coinName) { %>
+                                        <br><small><%= addr.coinName %></small>
+                                    <% } %>
+                                </td>
+                                <td class="address-text"><%= addr.address %></td>
+                                <td><%= addr.memo || '-' %></td>
+                                <td><%= addr.updated_at ? new Date(addr.updated_at).toLocaleString('ko-KR') : '-' %></td>
+                                <td>
+                                    <form action="/admin/users/<%= targetUser.id %>/deposit-addresses/<%= addr.exchangeId %>/<%= addr.symbol %>/delete" method="POST" style="display: inline;" onsubmit="return confirm('삭제하시겠습니까?')">
+                                        <button class="btn btn-sm btn-danger">🗑️ 삭제</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <p>등록된 입금주소가 없습니다. 위 폼을 사용하여 추가해주세요.</p>
+            <% } %>
+        </div>
+
+        <!-- 관리자 안내 -->
+        <div class="card" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white;">
+            <h3>⚠️ 관리자 권한 안내</h3>
+            <div style="margin-top: 15px;">
+                <p><strong>입금주소 관리 주의사항:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>잘못된 주소 입력 시 코인이 영구 소실될 수 있습니다</li>
+                    <li>XRP, EOS, BNB 등은 메모/태그가 반드시 필요합니다</li>
+                    <li>주소 정보는 암호화되어 안전하게 저장됩니다</li>
+                    <li>사용자에게 입금주소 등록 사실을 알려주세요</li>
+                    <li>자동거래 시 이 주소로 코인이 전송됩니다</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

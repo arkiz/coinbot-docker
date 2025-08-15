@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; margin-right: 5px; }
+        .btn-success { background: #28a745; }
+        .btn-danger { background: #dc3545; }
+        .btn-warning { background: #ffc107; color: #212529; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #f8f9fa; }
+        .alert { padding: 12px; border-radius: 4px; margin-bottom: 20px; }
+        .alert.success { background: #d4edda; color: #155724; }
+        .alert.error { background: #f8d7da; color: #721c24; }
+        .back-link { display: inline-block; margin-bottom: 15px; color: #007bff; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+        .status-active { color: #28a745; font-weight: bold; }
+        .status-inactive { color: #dc3545; font-weight: bold; }
+        .exchange-type-domestic { background: #e3f2fd; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+        .exchange-type-overseas { background: #fff3e0; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+        .url-text { font-family: monospace; font-size: 12px; word-break: break-all; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1><%= title %></h1>
+            <a href="/admin" class="back-link">← 관리자 대시보드로 돌아가기</a>
+        </div>
+
+        <% if (success && success.length > 0) { %>
+            <div class="alert success"><%= success[0] %></div>
+        <% } %>
+        <% if (error && error.length > 0) { %>
+            <div class="alert error"><%= error[0] %></div>
+        <% } %>
+
+        <!-- 거래소 추가 폼 -->
+        <div class="card">
+            <h2>🏦 새 거래소 추가</h2>
+            <form action="/admin/exchanges" method="POST">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>거래소명</label>
+                        <input type="text" name="name" required placeholder="예: 업비트, 바이낸스">
+                    </div>
+                    <div class="form-group">
+                        <label>타입</label>
+                        <select name="type" required>
+                            <option value="">선택하세요</option>
+                            <option value="domestic">국내거래소</option>
+                            <option value="overseas">해외거래소</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>API URL</label>
+                        <input type="url" name="api_url" required placeholder="https://api.example.com/v1">
+                    </div>
+                    <div class="form-group">
+                        <label>WebSocket URL (선택사항)</label>
+                        <input type="url" name="websocket_url" placeholder="wss://stream.example.com/ws">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>거래 수수료율 (소수점)</label>
+                        <input type="number" name="trading_fee_rate" step="0.0001" min="0" max="1" value="0.0025" placeholder="0.0025">
+                    </div>
+                    <div class="form-group">
+                        <label>출금 수수료율 (소수점)</label>
+                        <input type="number" name="withdrawal_fee_rate" step="0.0001" min="0" max="1" value="0.001" placeholder="0.001">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success">💾 거래소 추가</button>
+            </form>
+        </div>
+
+        <!-- 등록된 거래소 목록 -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2>등록된 거래소</h2>
+                <% if (exchanges.length === 0) { %>
+                    <form action="/admin/exchanges/initialize" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-warning" onclick="return confirm('기본 거래소 데이터를 생성하시겠습니까?')">
+                            🚀 기본 거래소 생성
+                        </button>
+                    </form>
+                <% } %>
+            </div>
+            
+            <% if (exchanges && exchanges.length > 0) { %>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>거래소명</th>
+                            <th>타입</th>
+                            <th>API URL</th>
+                            <th>거래 수수료</th>
+                            <th>상태</th>
+                            <th>등록일</th>
+                            <th>작업</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% exchanges.forEach(exchange => { %>
+                            <tr>
+                                <td><%= exchange.id %></td>
+                                <td><strong><%= exchange.name %></strong></td>
+                                <td>
+                                    <span class="exchange-type-<%= exchange.type %>">
+                                        <%= exchange.type === 'domestic' ? '국내' : '해외' %>
+                                    </span>
+                                </td>
+                                <td class="url-text"><%= exchange.api_url %></td>
+                                <td><%= (exchange.trading_fee_rate * 100).toFixed(4) %>%</td>
+                                <td>
+                                    <span class="status-<%= exchange.is_active ? 'active' : 'inactive' %>">
+                                        <%= exchange.is_active ? '활성' : '비활성' %>
+                                    </span>
+                                </td>
+                                <td><%= exchange.created_at ? new Date(exchange.created_at).toLocaleDateString('ko-KR') : '-' %></td>
+                                <td>
+                                    <button class="btn btn-sm" onclick="editExchange(<%= exchange.id %>, '<%= exchange.name %>', '<%= exchange.type %>', '<%= exchange.api_url %>', '<%= exchange.websocket_url || '' %>', <%= exchange.trading_fee_rate %>, <%= exchange.withdrawal_fee_rate %>)">
+                                        ✏️ 수정
+                                    </button>
+                                    <form action="/admin/exchanges/<%= exchange.id %>/toggle-status" method="POST" style="display: inline;">
+                                        <button class="btn btn-sm <%= exchange.is_active ? 'btn-warning' : 'btn-success' %>">
+                                            <%= exchange.is_active ? '🔒 비활성화' : '🔓 활성화' %>
+                                        </button>
+                                    </form>
+                                    <form action="/admin/exchanges/<%= exchange.id %>/delete" method="POST" style="display: inline;" onsubmit="return confirm('정말 삭제하시겠습니까? 사용 중인 경우 삭제되지 않습니다.')">
+                                        <button class="btn btn-sm btn-danger">🗑️ 삭제</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <div style="text-align: center; padding: 40px; color: #666;">
+                    <h3>등록된 거래소가 없습니다</h3>
+                    <p>기본 거래소 생성 버튼을 클릭하거나 수동으로 추가해주세요.</p>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- 수정 모달 -->
+        <div id="editModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 8px; width: 90%; max-width: 600px;">
+                <h3>거래소 수정</h3>
+                <form id="editForm" method="POST">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>거래소명</label>
+                            <input type="text" id="edit_name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>타입</label>
+                            <select id="edit_type" name="type" required>
+                                <option value="domestic">국내거래소</option>
+                                <option value="overseas">해외거래소</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>API URL</label>
+                            <input type="url" id="edit_api_url" name="api_url" required>
+                        </div>
+                        <div class="form-group">
+                            <label>WebSocket URL</label>
+                            <input type="url" id="edit_websocket_url" name="websocket_url">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>거래 수수료율</label>
+                            <input type="number" id="edit_trading_fee_rate" name="trading_fee_rate" step="0.0001" min="0" max="1">
+                        </div>
+                        <div class="form-group">
+                            <label>출금 수수료율</label>
+                            <input type="number" id="edit_withdrawal_fee_rate" name="withdrawal_fee_rate" step="0.0001" min="0" max="1">
+                        </div>
+                    </div>
+                    <div style="text-align: right; margin-top: 20px;">
+                        <button type="button" class="btn" onclick="closeEditModal()">취소</button>
+                        <button type="submit" class="btn btn-success">💾 저장</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function editExchange(id, name, type, api_url, websocket_url, trading_fee_rate, withdrawal_fee_rate) {
+            document.getElementById('editForm').action = `/admin/exchanges/${id}`;
+            document.getElementById('edit_name').value = name;
+            document.getElementById('edit_type').value = type;
+            document.getElementById('edit_api_url').value = api_url;
+            document.getElementById('edit_websocket_url').value = websocket_url;
+            document.getElementById('edit_trading_fee_rate').value = trading_fee_rate;
+            document.getElementById('edit_withdrawal_fee_rate').value = withdrawal_fee_rate;
+            
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        // 모달 외부 클릭 시 닫기
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEditModal();
+            }
+        });
+    </script>
+</body>
+</html>

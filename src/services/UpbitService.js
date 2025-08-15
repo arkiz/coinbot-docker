@@ -1,3 +1,7 @@
+const crypto = require('crypto');
+const { v4: uuidv4 } = require('uuid');
+const jwt = require('jsonwebtoken');
+const axios = require('axios');
 const ExchangeService = require('./ExchangeService');
 
 class UpbitService extends ExchangeService {
@@ -121,6 +125,71 @@ class UpbitService extends ExchangeService {
         };
 
         return ws;
+    }
+
+    // 업비트 잔고 조회 (인증 필요)
+    async getBalance(apiKey, secretKey) {
+        try {
+            const payload = {
+                access_key: apiKey,
+                nonce: uuidv4(),
+            };
+
+            const token = jwt.sign(payload, secretKey);
+            
+            const response = await axios.get(`${this.baseUrl}/accounts`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'User-Agent': 'CoinBot/1.0'
+                },
+                timeout: 10000
+            });
+
+            // 업비트 잔고 데이터 정규화
+            const balances = response.data.map(account => ({
+                currency: account.currency,
+                balance: parseFloat(account.balance),
+                locked: parseFloat(account.locked),
+                avgBuyPrice: parseFloat(account.avg_buy_price || 0),
+                avgBuyPriceModified: account.avg_buy_price_modified,
+                unitCurrency: account.unit_currency
+            }));
+
+            // KRW 잔고와 코인 잔고 분리
+            const krwBalance = balances.find(b => b.currency === 'KRW');
+            const coinBalances = balances.filter(b => b.currency !== 'KRW' && b.balance > 0);
+
+            this.logger.info('업비트 잔고 조회 성공', {
+                totalAssets: balances.length,
+                krwBalance: krwBalance?.balance || 0,
+                coinCount: coinBalances.length
+            });
+
+            return {
+                exchange: 'upbit',
+                fiatCurrency: 'KRW',
+                fiatBalance: krwBalance?.balance || 0,
+                fiatLocked: krwBalance?.locked || 0,
+                coinBalances: coinBalances,
+                totalAssets: balances.length,
+                timestamp: new Date()
+            };
+
+        } catch (error) {
+            this.logger.error('업비트 잔고 조회 실패', { 
+                error: error.message,
+                status: error.response?.status 
+            });
+            
+            // API 키 관련 오류 구분
+            if (error.response?.status === 401) {
+                throw new Error('API 키 인증 실패 - 키를 확인해주세요');
+            } else if (error.response?.status === 403) {
+                throw new Error('API 권한 부족 - 잔고 조회 권한을 확인해주세요');
+            }
+            
+            throw error;
+        }
     }
 }
 

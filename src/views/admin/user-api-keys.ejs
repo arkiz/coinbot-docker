@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; }
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn-success { background: #28a745; }
+        .btn-danger { background: #dc3545; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #f8f9fa; }
+        .status-verified { color: #28a745; }
+        .status-unverified { color: #dc3545; }
+        .alert { padding: 12px; border-radius: 4px; margin-bottom: 20px; }
+        .alert.success { background: #d4edda; color: #155724; }
+        .alert.error { background: #f8d7da; color: #721c24; }
+        .back-link { display: inline-block; margin-bottom: 15px; color: #007bff; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+        .user-info { background: #e3f2fd; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+        .user-info h3 { color: #1976d2; margin-bottom: 5px; }
+        .user-info p { color: #1565c0; margin: 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1><%= title %></h1>
+            <a href="/admin/users" class="back-link">← 사용자 관리로 돌아가기</a>
+        </div>
+
+        <!-- 대상 사용자 정보 -->
+        <div class="user-info">
+            <h3>👤 관리 대상 사용자</h3>
+            <p><strong><%= targetUser.username %></strong> (<%= targetUser.email %>)</p>
+        </div>
+
+        <% if (success && success.length > 0) { %>
+            <div class="alert success"><%= success[0] %></div>
+        <% } %>
+        <% if (error && error.length > 0) { %>
+            <div class="alert error"><%= error[0] %></div>
+        <% } %>
+
+        <!-- API 키 추가 폼 (관리자용) -->
+        <div class="card">
+            <h2>🔑 API 키 추가/수정 (관리자 권한)</h2>
+            <form action="/admin/users/<%= targetUser.id %>/api-keys" method="POST">
+                <div class="form-group">
+                    <label>거래소</label>
+                    <select name="exchange_id" required>
+                        <option value="">선택하세요</option>
+                        <% exchanges.forEach(exchange => { %>
+                            <option value="<%= exchange.id %>"><%= exchange.name %></option>
+                        <% }); %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>API Key</label>
+                    <input type="text" name="api_key" required placeholder="거래소 API 키">
+                </div>
+                <div class="form-group">
+                    <label>Secret Key</label>
+                    <input type="password" name="secret_key" required placeholder="거래소 시크릿 키">
+                </div>
+                <div class="form-group">
+                    <label>Passphrase (선택사항)</label>
+                    <input type="password" name="passphrase" placeholder="업비트 등 추가 인증">
+                </div>
+                <button type="submit" class="btn btn-success">💾 저장</button>
+            </form>
+        </div>
+
+        <!-- 등록된 API 키 목록 -->
+        <div class="card">
+            <h2><%= targetUser.username %>님의 등록된 API 키</h2>
+            <% if (apiKeys && apiKeys.length > 0) { %>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>거래소</th>
+                            <th>상태</th>
+                            <th>마지막 테스트</th>
+                            <th>등록일</th>
+                            <th>작업</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% apiKeys.forEach(key => { %>
+                            <tr>
+                                <td><%= key.exchange_name %></td>
+                                <td>
+                                    <% if (key.is_verified) { %>
+                                        <span class="status-verified">✅ 인증됨</span>
+                                    <% } else { %>
+                                        <span class="status-unverified">⚠️ 미인증</span>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <%= key.last_tested_at ? new Date(key.last_tested_at).toLocaleString('ko-KR') : '-' %>
+                                    <% if (key.last_test_result) { %>
+                                        <br><small><%= key.last_test_result %></small>
+                                    <% } %>
+                                </td>
+                                <td><%= key.created_at ? new Date(key.created_at).toLocaleString('ko-KR') : '-' %></td>
+                                <td>
+                                    <form action="/admin/users/<%= targetUser.id %>/api-keys/<%= key.id %>/test" method="POST" style="display: inline;">
+                                        <button class="btn btn-sm">🔄 테스트</button>
+                                    </form>
+                                    <form action="/admin/users/<%= targetUser.id %>/api-keys/<%= key.id %>/delete" method="POST" style="display: inline;" onsubmit="return confirm('삭제하시겠습니까?')">
+                                        <button class="btn btn-sm btn-danger">🗑️ 삭제</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <p>등록된 API 키가 없습니다. 위 폼을 사용하여 추가해주세요.</p>
+            <% } %>
+        </div>
+
+        <!-- 관리자 안내 -->
+        <div class="card" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white;">
+            <h3>⚠️ 관리자 권한 안내</h3>
+            <div style="margin-top: 15px;">
+                <p><strong>보안 주의사항:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>사용자의 API 키는 AES-256-GCM으로 암호화되어 저장됩니다</li>
+                    <li>API 키 저장 후 반드시 연결 테스트를 진행하세요</li>
+                    <li>사용자에게 API 키 등록 사실을 알려주세요</li>
+                    <li>불필요한 API 키는 즉시 삭제하여 보안을 유지하세요</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

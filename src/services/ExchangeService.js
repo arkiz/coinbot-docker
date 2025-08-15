@@ -1,6 +1,7 @@
 const axios = require('axios');
 const WebSocket = require('ws');
 const winston = require('winston');
+const db = require('../config/database');
 
 // 거래소 API 기본 클래스
 class ExchangeService {
@@ -136,6 +137,62 @@ class ExchangeService {
             this.logger.error('평균가 계산 실패', { error: error.message });
             return null;
         }
+    }
+
+    // 정적 메서드: 거래소별 잔고 조회
+    static async getBalance(exchangeId, apiKey, secretKey, passphrase = null) {
+        try {
+            const connection = await db.getConnection();
+            const [rows] = await connection.execute('SELECT name FROM exchanges WHERE id = ? AND is_active = TRUE', [exchangeId]);
+            connection.release();
+            
+            if (rows.length === 0) {
+                throw new Error('지원하지 않는 거래소이거나 비활성화된 거래소입니다.');
+            }
+            
+            const exchangeName = rows[0].name;
+            let service;
+            
+            // 거래소별 서비스 인스턴스 생성 (빗썸 V2 적용)
+            switch (exchangeName) {
+                case '업비트':
+                    const UpbitService = require('./UpbitService');
+                    service = new UpbitService();
+                    break;
+                    
+                case '바이낸스':
+                    const BinanceService = require('./BinanceService');
+                    service = new BinanceService();
+                    break;
+                    
+                case '빗썸':
+                    const BithumbV2Service = require('./BithumbV2Service');
+                    service = new BithumbV2Service();
+                    break;
+                    
+                default:
+                    throw new Error(`${exchangeName}는 아직 지원하지 않는 거래소입니다.`);
+            }
+            
+        return await service.getBalance(apiKey, secretKey, passphrase);
+        
+    } catch (error) {
+        console.error(`거래소 ${exchangeId} 잔고 조회 실패:`, error);
+        throw error;
+    }
+}
+
+    // 지원되는 거래소 목록 반환 
+    static getSupportedExchanges() {
+        return ['업비트', '바이낸스', '빗썸'];
+    }
+    // 각 거래소에서 구현해야 할 추상 메서드들 (인증 API)
+    async getBalance(apiKey, secretKey, passphrase = null) {
+        throw new Error('getBalance 메서드를 구현해야 합니다.');
+    }
+
+    async placeOrder(symbol, side, type, price, quantity, apiKey, secretKey, passphrase = null) {
+        throw new Error('placeOrder 메서드를 구현해야 합니다.');
     }
 }
 

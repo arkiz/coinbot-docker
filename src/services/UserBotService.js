@@ -1,6 +1,7 @@
 // services/UserBotService.js
 const db = require('../config/database');
 const ExchangeService = require('./ExchangeService');
+const ApiKeyService = require('./ApiKeyService');
 
 class UserBotService {
     constructor(userId) {
@@ -157,43 +158,57 @@ class UserBotService {
     }
 
     async getExchangeBalances() {
-        const connection = await db.getConnection();
-        const [credentials] = await connection.execute(`
-            SELECT uec.*, e.name as exchange_name, e.type as exchange_type
-            FROM user_exchange_credentials uec
-            JOIN exchanges e ON uec.exchange_id = e.id
-            WHERE uec.user_id = ? AND uec.is_active = TRUE
-        `, [this.userId]);
+        try {
+            const apiKeyService = new ApiKeyService(this.userId);
+            const verifiedExchanges = await apiKeyService.getVerifiedExchanges();
+            
+            const balances = { domestic: [], overseas: [] };
 
-        const balances = {
-            domestic: [],
-            overseas: []
-        };
+            for (const exchange of verifiedExchanges) {
+                try {
+                    // 복호화된 키 가져오기
+                    const decryptedKeys = await apiKeyService.getDecryptedApiKey(exchange.id);
+                    const balance = await ExchangeService.getBalance(
+                        exchange.exchange_id,
+                        decryptedKeys.api_key,
+                        decryptedKeys.secret_key,
+                        decryptedKeys.passphrase
+                    );
+                    
+                    const balanceInfo = {
+                        exchangeName: exchange.exchange_name,
+                        balance: balance,
+                        isVerified: true
+                    };
 
-        for (const cred of credentials) {
-            try {
-                const balance = await ExchangeService.getBalance(
-                    cred.exchange_id, 
-                    cred.api_key, 
-                    cred.secret_key
-                );
-                
-                const balanceInfo = {
-                    exchangeName: cred.exchange_name,
-                    balance: balance
-                };
+                    if (exchange.exchange_type === 'domestic') {
+                        balances.domestic.push(balanceInfo);
+                    } else {
+                        balances.overseas.push(balanceInfo);
+                    }
+                } catch (error) {
+                    console.error(`잔고 조회 실패 (${exchange.exchange_name}):`, error);
+                    // 실패한 경우에도 기본 정보는 표시
+                    const balanceInfo = {
+                        exchangeName: exchange.exchange_name,
+                        balance: null,
+                        error: error.message,
+                        isVerified: false
+                    };
 
-                if (cred.exchange_type === 'domestic') {
-                    balances.domestic.push(balanceInfo);
-                } else {
-                    balances.overseas.push(balanceInfo);
+                    if (exchange.exchange_type === 'domestic') {
+                        balances.domestic.push(balanceInfo);
+                    } else {
+                        balances.overseas.push(balanceInfo);
+                    }
                 }
-            } catch (error) {
-                console.error(`잔고 조회 실패 (${cred.exchange_name}):`, error);
             }
-        }
 
-        return balances;
+            return balances;
+        } catch (error) {
+            console.error(`사용자 ${this.userId} 잔고 조회 오류:`, error);
+            return { domestic: [], overseas: [] };
+        }
     }
 
     async startBot() {

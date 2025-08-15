@@ -1,3 +1,5 @@
+const crypto = require('crypto');
+const axios = require('axios');
 const ExchangeService = require('./ExchangeService');
 
 class BinanceService extends ExchangeService {
@@ -112,6 +114,79 @@ class BinanceService extends ExchangeService {
         });
 
         return ws;
+    }
+
+    // 바이낸스 잔고 조회 (인증 필요)
+    async getBalance(apiKey, secretKey) {
+        try {
+            const timestamp = Date.now();
+            const queryString = `timestamp=${timestamp}`;
+            
+            const signature = crypto
+                .createHmac('sha256', secretKey)
+                .update(queryString)
+                .digest('hex');
+
+            const response = await axios.get(`${this.baseUrl}/account`, {
+                params: {
+                    timestamp: timestamp,
+                    signature: signature
+                },
+                headers: {
+                    'X-MBX-APIKEY': apiKey,
+                    'User-Agent': 'CoinBot/1.0'
+                },
+                timeout: 10000
+            });
+
+            // 바이낸스 잔고 데이터 정규화
+            const balances = response.data.balances
+                .filter(balance => parseFloat(balance.free) > 0 || parseFloat(balance.locked) > 0)
+                .map(balance => ({
+                    currency: balance.asset,
+                    balance: parseFloat(balance.free),
+                    locked: parseFloat(balance.locked),
+                    total: parseFloat(balance.free) + parseFloat(balance.locked)
+                }));
+
+            // USDT 잔고와 코인 잔고 분리
+            const usdtBalance = balances.find(b => b.currency === 'USDT');
+            const coinBalances = balances.filter(b => b.currency !== 'USDT' && b.total > 0);
+
+            this.logger.info('바이낸스 잔고 조회 성공', {
+                totalAssets: balances.length,
+                usdtBalance: usdtBalance?.balance || 0,
+                coinCount: coinBalances.length
+            });
+
+            return {
+                exchange: 'binance',
+                fiatCurrency: 'USDT',
+                fiatBalance: usdtBalance?.balance || 0,
+                fiatLocked: usdtBalance?.locked || 0,
+                coinBalances: coinBalances,
+                totalAssets: balances.length,
+                canTrade: response.data.canTrade,
+                canWithdraw: response.data.canWithdraw,
+                canDeposit: response.data.canDeposit,
+                timestamp: new Date()
+            };
+
+        } catch (error) {
+            this.logger.error('바이낸스 잔고 조회 실패', { 
+                error: error.message,
+                status: error.response?.status 
+            });
+            
+            // API 키 관련 오류 구분
+            if (error.response?.status === 401) {
+                throw new Error('API 키 인증 실패 - 키를 확인해주세요');
+            } else if (error.response?.status === -1022) {
+                throw new Error('API 키 권한 부족 - 거래 권한을 확인해주세요');
+            }
+            
+            throw error;
+        }
     }
 }
 

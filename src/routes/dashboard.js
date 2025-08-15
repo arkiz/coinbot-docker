@@ -3,6 +3,9 @@ const express = require('express');
 const UserBotService = require('../services/UserBotService');
 const db = require('../config/database');
 const router = express.Router();
+const ApiKeyService = require('../services/ApiKeyService');
+const UserSettingsService = require('../services/UserSettingsService');
+const TradeExecutionService = require('../services/TradeExecutionService');
 
 // 인증 미들웨어
 function requireAuth(req, res, next) {
@@ -26,7 +29,7 @@ router.get('/', requireAuth, async (req, res) => {
         ]);
 
         res.render('dashboard', {
-            title: `${req.user.username}님의 김프 봇 대시1보드`,
+            title: `${req.user.username}님의 김프 봇 대시보드`,
             user: req.user,
             botSettings: botSettings,
             exchangeBalances: exchangeBalances,
@@ -157,5 +160,260 @@ router.post('/bot/:action', requireAuth, async (req, res) => {
         res.redirect('/dashboard');
     }
 });
+
+// API 키 관리 페이지
+router.get('/api-keys', requireAuth, async (req, res) => {
+    try {
+        const apiKeyService = new ApiKeyService(req.user.id);
+        const [apiKeys, exchanges] = await Promise.all([
+            apiKeyService.getUserApiKeys(),
+            getExchanges()
+        ]);
+
+        res.render('user/api-keys', {
+            title: `${req.user.username}님의 API 키 관리`,
+            user: req.user,
+            apiKeys,
+            exchanges,
+            success: req.flash('success'),
+            error: req.flash('error')
+        });
+    } catch (error) {
+        console.error('API 키 관리 페이지 오류:', error);
+        req.flash('error', 'API 키 관리 페이지를 불러오는 중 오류가 발생했습니다.');
+        res.redirect('/dashboard');
+    }
+});
+
+// API 키 저장
+router.post('/api-keys', requireAuth, async (req, res) => {
+    try {
+        const apiKeyService = new ApiKeyService(req.user.id);
+        const { exchange_id, api_key, secret_key, passphrase } = req.body;
+        
+        // 입력값 검증
+        if (!exchange_id || !api_key || !secret_key) {
+            req.flash('error', '모든 필수 필드를 입력해주세요.');
+            return res.redirect('/dashboard/api-keys');
+        }
+        
+        await apiKeyService.saveApiKey(exchange_id, api_key.trim(), secret_key.trim(), passphrase?.trim());
+        req.flash('success', 'API 키가 성공적으로 저장되었습니다. 연결 테스트를 진행해주세요.');
+    } catch (error) {
+        req.flash('error', `API 키 저장 실패: ${error.message}`);
+    }
+    res.redirect('/dashboard/api-keys');
+});
+
+// API 키 테스트
+router.post('/api-keys/:id/test', requireAuth, async (req, res) => {
+    try {
+        const apiKeyService = new ApiKeyService(req.user.id);
+        const result = await apiKeyService.testApiKey(req.params.id);
+        
+        req.flash(result.success ? 'success' : 'error', result.message);
+        
+        if (result.success && result.balance) {
+            req.flash('success', 
+                `잔고 정보: ${result.balance.fiatCurrency} ${result.balance.fiatBalance.toLocaleString()}, ` +
+                `코인 ${result.balance.coinBalances.length}종류`
+            );
+        }
+    } catch (error) {
+        req.flash('error', `테스트 실패: ${error.message}`);
+    }
+    res.redirect('/dashboard/api-keys');
+});
+
+// API 키 삭제
+router.post('/api-keys/:id/delete', requireAuth, async (req, res) => {
+    try {
+        const apiKeyService = new ApiKeyService(req.user.id);
+        await apiKeyService.deleteApiKey(req.params.id);
+        req.flash('success', 'API 키가 삭제되었습니다.');
+    } catch (error) {
+        req.flash('error', `삭제 실패: ${error.message}`);
+    }
+    res.redirect('/dashboard/api-keys');
+});
+
+// 입금주소 관리 페이지
+router.get('/deposit-addresses', requireAuth, async (req, res) => {
+    try {
+        const settingsService = new UserSettingsService(req.user.id);
+        const [addresses, exchanges, coins] = await Promise.all([
+            settingsService.getAllDepositAddresses(),
+            getActiveExchanges(),
+            getTradableCoins()
+        ]);
+
+        res.render('user/deposit-addresses', {
+            title: `${req.user.username}님의 입금주소 관리`,
+            user: req.user,
+            addresses,
+            exchanges,
+            coins,
+            success: req.flash('success'),
+            error: req.flash('error')
+        });
+    } catch (error) {
+        console.error('입금주소 관리 페이지 오류:', error);
+        req.flash('error', '입금주소 관리 페이지를 불러오는 중 오류가 발생했습니다.');
+        res.redirect('/dashboard');
+    }
+});
+
+// 입금주소 저장
+router.post('/deposit-addresses', requireAuth, async (req, res) => {
+    try {
+        const { exchange_id, symbol, address, memo } = req.body;
+        
+        if (!exchange_id || !symbol || !address) {
+            req.flash('error', '거래소, 코인, 주소는 필수입니다.');
+            return res.redirect('/dashboard/deposit-addresses');
+        }
+
+        const settingsService = new UserSettingsService(req.user.id);
+        await settingsService.upsertDepositAddress(
+            Number(exchange_id), 
+            symbol.trim(), 
+            address.trim(), 
+            memo?.trim() || ''
+        );
+        
+        req.flash('success', '입금주소가 성공적으로 저장되었습니다.');
+    } catch (error) {
+        req.flash('error', `입금주소 저장 실패: ${error.message}`);
+    }
+    res.redirect('/dashboard/deposit-addresses');
+});
+
+// 입금주소 삭제
+router.post('/deposit-addresses/:exchangeId/:symbol/delete', requireAuth, async (req, res) => {
+    try {
+        const { exchangeId, symbol } = req.params;
+        const settingsService = new UserSettingsService(req.user.id);
+        
+        await settingsService.deleteDepositAddress(Number(exchangeId), symbol);
+        req.flash('success', '입금주소가 삭제되었습니다.');
+    } catch (error) {
+        req.flash('error', `삭제 실패: ${error.message}`);
+    }
+    res.redirect('/dashboard/deposit-addresses');
+});
+
+
+// 수동 거래 테스트 페이지
+router.get('/trade/manual', requireAuth, async (req, res) => {
+    try {
+        const connection = await db.getConnection();
+        const [coins] = await connection.execute(`
+            SELECT symbol, name FROM coins 
+            WHERE is_active = TRUE AND is_tradable = TRUE 
+            ORDER BY symbol
+        `);
+        connection.release();
+
+        const userBotService = new UserBotService(req.user.id);
+        const botSettings = await userBotService.getBotSettings();
+
+        res.render('user/manual-trade', {
+            title: `${req.user.username}님의 거래 테스트`,
+            user: req.user,
+            coins: coins,
+            botSettings: botSettings,
+            success: req.flash('success'),
+            error: req.flash('error')
+        });
+    } catch (error) {
+        console.error('수동 거래 페이지 오류:', error);
+        req.flash('error', '페이지를 불러오는 중 오류가 발생했습니다.');
+        res.redirect('/dashboard');
+    }
+});
+
+// 수동 거래 실행
+router.post('/trade/execute', requireAuth, async (req, res) => {
+    try {
+        const { symbol, budget, dryRun } = req.body;
+        
+        if (!symbol || !budget) {
+            req.flash('error', '코인과 거래 금액을 입력해주세요.');
+            return res.redirect('/dashboard/trade/manual');
+        }
+
+        const budgetAmount = parseFloat(budget);
+        if (isNaN(budgetAmount) || budgetAmount <= 0) {
+            req.flash('error', '올바른 거래 금액을 입력해주세요.');
+            return res.redirect('/dashboard/trade/manual');
+        }
+
+        const tradeService = new TradeExecutionService();
+        const result = await tradeService.executeOnce(
+            req.user.id,ㄴ
+            symbol.toUpperCase(),
+            budgetAmount,
+            dryRun === 'true'
+        );
+
+        if (result.success) {
+            const mode = result.dryRun ? '시뮬레이션' : '실거래';
+            const profit = result.netProfit >= 0 ? 
+                `+${result.netProfit.toLocaleString()}원 (${result.profitRate.toFixed(4)}%)` :
+                `${result.netProfit.toLocaleString()}원 (${result.profitRate.toFixed(4)}%)`;
+            
+            req.flash('success', 
+                `${symbol} ${mode} 완료! ` +
+                `거래 ID: ${result.tradeId}, 수익: ${profit}`
+            );
+        } else {
+            req.flash('error', `거래 실패: ${result.error}`);
+        }
+
+    } catch (error) {
+        console.error('거래 실행 오류:', error);
+        req.flash('error', `거래 실행 중 오류가 발생했습니다: ${error.message}`);
+    }
+
+    res.redirect('/dashboard/trade/manual');
+});
+
+
+// 헬퍼 함수
+async function getExchanges() {
+    // const connection = await db.getConnection();
+    // const [rows] = await connection.execute(`
+    //     SELECT id, name, type FROM exchanges 
+    //     WHERE name IN ('업비트', '바이낸스') AND is_active = TRUE 
+    //     ORDER BY type, name
+    // `);
+    // connection.release();
+    // return rows;
+    const ExchangeManagementService = require('../services/ExchangeManagementService');
+    return await ExchangeManagementService.getActiveExchanges();
+}
+
+async function getActiveExchanges() {
+    const connection = await db.getConnection();
+    const [rows] = await connection.execute(`
+        SELECT id, name, type FROM exchanges 
+        WHERE is_active = TRUE AND name IN ('업비트', '바이낸스') 
+        ORDER BY type, name
+    `);
+    connection.release();
+    return rows;
+}
+
+async function getTradableCoins() {
+    const connection = await db.getConnection();
+    const [rows] = await connection.execute(`
+        SELECT symbol, name FROM coins 
+        WHERE is_active = TRUE AND is_tradable = TRUE 
+        ORDER BY symbol
+    `);
+    connection.release();
+    return rows;
+}
+
 
 module.exports = router;

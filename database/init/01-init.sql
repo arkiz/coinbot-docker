@@ -44,9 +44,9 @@ CREATE TABLE IF NOT EXISTS user_exchange_credentials (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     exchange_id INT NOT NULL,
-    api_key VARCHAR(255) NOT NULL,
-    secret_key TEXT NOT NULL,
-    passphrase VARCHAR(255) NULL,
+    api_key VARBINARY(512) NOT NULL,
+    secret_key VARBINARY(512) NOT NULL,
+    passphrase VARBINARY(512) NULL,
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -54,6 +54,15 @@ CREATE TABLE IF NOT EXISTS user_exchange_credentials (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (exchange_id) REFERENCES exchanges(id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- 1. user_exchange_credentials 테이블 보안 강화
+ALTER TABLE user_exchange_credentials 
+MODIFY COLUMN api_key VARBINARY(512) NOT NULL COMMENT '암호화된 API 키',
+MODIFY COLUMN secret_key VARBINARY(512) NOT NULL COMMENT '암호화된 시크릿 키',
+MODIFY COLUMN passphrase VARBINARY(512) NULL COMMENT '암호화된 패스프레이즈',
+ADD COLUMN is_verified TINYINT(1) DEFAULT 0 AFTER is_active,
+ADD COLUMN last_tested_at DATETIME NULL AFTER is_verified,
+ADD COLUMN last_test_result VARCHAR(100) NULL AFTER last_tested_at;
 
 
 -- 세션 테이블 (express-mysql-session용)
@@ -163,7 +172,7 @@ CREATE TABLE IF NOT EXISTS bot_settings (
 -- ==============================================
 CREATE TABLE IF NOT EXISTS trading_intensity (
     coin_id INT NOT NULL,
-    user_id INT NOT NULL,
+    user_id INT NULL,
     current_intensity INT DEFAULT 0,
     last_premium_rate DECIMAL(8, 4),
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -202,6 +211,8 @@ CREATE TABLE IF NOT EXISTS trade_history (
     INDEX idx_completed_at (completed_at),
     INDEX idx_trade_history_user_date (user_id, created_at)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+
 
 -- ==============================================
 -- 6. 실시간 가격 로그 테이블
@@ -270,3 +281,5 @@ SELECT
     (SELECT COUNT(*) FROM exchanges) as total_exchanges,
     (SELECT COUNT(*) FROM coins) as total_coins,
     NOW() as initialized_at;
+
+CREATE INDEX idx_uec_user_verified ON user_exchange_credentials(user_id, is_verified);

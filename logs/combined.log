@@ -4072,3 +4072,169 @@
 [2025-08-14 19:50:00] [INFO] 🔍 헬스체크: http://localhost:3000/health 
 [2025-08-14 19:50:00] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
 [2025-08-14 19:50:00] [INFO] Redis 연결 성공 
+[2025-08-15 03:49:19] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 03:49:19] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 03:49:19] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 03:49:19] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 03:49:19] [INFO] Redis 연결 성공 
+[2025-08-15 04:01:45] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 04:01:45] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 04:01:45] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 04:01:45] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 04:01:45] [INFO] Redis 연결 성공 
+[2025-08-15 04:40:43] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 04:40:43] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 04:40:43] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 04:40:43] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 04:40:43] [INFO] Redis 연결 성공 
+[2025-08-15 04:43:57] [ERROR] 처리되지 않은 Promise 거부: ApiKeyService is not defined {"stack":"ReferenceError: ApiKeyService is not defined\n    at /app/routes/admin.js:409:27\n    at Layer.handle [as handle_request] (/app/node_modules/express/lib/router/layer.js:95:5)\n    at next (/app/node_modules/express/lib/router/route.js:149:13)\n    at requireAdmin (/app/routes/admin.js:18:5)\n    at Layer.handle [as handle_request] (/app/node_modules/express/lib/router/layer.js:95:5)\n    at next (/app/node_modules/express/lib/router/route.js:149:13)\n    at Route.dispatch (/app/node_modules/express/lib/router/route.js:119:3)\n    at Layer.handle [as handle_request] (/app/node_modules/express/lib/router/layer.js:95:5)\n    at /app/node_modules/express/lib/router/index.js:284:15\n    at param (/app/node_modules/express/lib/router/index.js:365:14)"}
+[2025-08-15 04:44:08] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 04:44:08] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 04:44:08] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 04:44:08] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 04:44:08] [INFO] Redis 연결 성공 
+[2025-08-15 04:44:11] [ERROR] 처리되지 않은 Promise 거부: ApiKeyService is not defined {"stack":"ReferenceError: ApiKeyService is not defined\n    at /app/routes/admin.js:409:27\n    at Layer.handle [as handle_request] (/app/node_modules/express/lib/router/layer.js:95:5)\n    at next (/app/node_modules/express/lib/router/route.js:149:13)\n    at requireAdmin (/app/routes/admin.js:18:5)\n    at Layer.handle [as handle_request] (/app/node_modules/express/lib/router/layer.js:95:5)\n    at next (/app/node_modules/express/lib/router/route.js:149:13)\n    at Route.dispatch (/app/node_modules/express/lib/router/route.js:119:3)\n    at Layer.handle [as handle_request] (/app/node_modules/express/lib/router/layer.js:95:5)\n    at /app/node_modules/express/lib/router/index.js:284:15\n    at param (/app/node_modules/express/lib/router/index.js:365:14)"}
+[2025-08-15 04:46:05] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 04:46:05] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 04:46:05] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 04:46:05] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 04:46:05] [INFO] Redis 연결 성공 
+[2025-08-15 04:46:10] [ERROR] 처리되지 않은 Promise 거부: getExchanges is not defined {"stack":"ReferenceError: getExchanges is not defined\n    at /app/routes/admin.js:413:23\n    at Layer.handle [as handle_request] (/app/node_modules/express/lib/router/layer.js:95:5)\n    at next (/app/node_modules/express/lib/router/route.js:149:13)\n    at requireAdmin (/app/routes/admin.js:19:5)\n    at Layer.handle [as handle_request] (/app/node_modules/express/lib/router/layer.js:95:5)\n    at next (/app/node_modules/express/lib/router/route.js:149:13)\n    at Route.dispatch (/app/node_modules/express/lib/router/route.js:119:3)\n    at Layer.handle [as handle_request] (/app/node_modules/express/lib/router/layer.js:95:5)\n    at /app/node_modules/express/lib/router/index.js:284:15\n    at param (/app/node_modules/express/lib/router/index.js:365:14)"}
+[2025-08-15 04:48:40] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 04:48:40] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 04:48:40] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 04:48:40] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 04:48:40] [INFO] Redis 연결 성공 
+[2025-08-15 04:48:44] [ERROR] 서버 에러: 
+[2025-08-15 04:48:46] [ERROR] 서버 에러: 
+[2025-08-15 04:51:39] [ERROR] 서버 에러: 
+[2025-08-15 04:57:05] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 04:57:05] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 04:57:05] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 04:57:05] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 04:57:05] [INFO] Redis 연결 성공 
+[2025-08-15 04:57:45] [ERROR] 서버 에러: 
+[2025-08-15 04:57:54] [ERROR] 서버 에러: 
+[2025-08-15 05:17:08] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 05:17:08] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 05:17:08] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 05:17:08] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 05:17:08] [INFO] Redis 연결 성공 
+[2025-08-15 13:51:41] [INFO] 통합 대시보드 데이터 요청 
+[2025-08-15 13:52:13] [ERROR] 서버 에러: 
+[2025-08-15 13:54:28] [ERROR] 서버 에러: 
+[2025-08-15 13:56:18] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 13:56:18] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 13:56:18] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 13:56:18] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 13:56:18] [INFO] Redis 연결 성공 
+[2025-08-15 15:06:50] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 15:06:50] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 15:06:50] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 15:06:50] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 15:06:50] [INFO] Redis 연결 성공 
+[2025-08-15 15:14:43] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 15:14:43] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 15:14:43] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 15:14:43] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 15:14:43] [INFO] Redis 연결 성공 
+[2025-08-15 15:15:20] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 15:15:20] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 15:15:20] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 15:15:20] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 15:15:20] [INFO] Redis 연결 성공 
+[2025-08-15 15:15:48] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 15:15:48] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 15:15:48] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 15:15:48] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 15:15:48] [INFO] Redis 연결 성공 
+[2025-08-15 15:17:10] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 15:17:10] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 15:17:10] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 15:17:10] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 15:17:10] [INFO] Redis 연결 성공 
+[2025-08-15 15:17:35] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 15:17:35] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 15:17:35] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 15:17:35] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 15:17:35] [INFO] Redis 연결 성공 
+[2025-08-15 15:50:58] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 15:50:58] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 15:50:58] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 15:50:58] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 15:50:58] [INFO] Redis 연결 성공 
+[2025-08-15 16:01:00] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 16:01:00] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 16:01:00] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 16:01:00] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 16:01:01] [INFO] Redis 연결 성공 
+[2025-08-15 16:05:05] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 16:05:05] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 16:05:05] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 16:05:05] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 16:05:05] [INFO] Redis 연결 성공 
+[2025-08-15 16:05:46] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 16:05:46] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 16:05:46] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 16:05:46] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 16:05:46] [INFO] Redis 연결 성공 
+[2025-08-15 16:10:32] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 16:10:32] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 16:10:32] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 16:10:32] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 16:10:32] [INFO] Redis 연결 성공 
+[2025-08-15 16:10:49] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 16:10:49] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 16:10:49] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 16:10:49] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 16:10:49] [INFO] Redis 연결 성공 
+[2025-08-15 16:11:46] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 16:11:46] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 16:11:46] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 16:11:46] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 16:11:46] [INFO] Redis 연결 성공 
+[2025-08-15 16:15:03] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 16:15:03] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 16:15:03] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 16:15:03] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 16:15:03] [INFO] Redis 연결 성공 
+[2025-08-15 16:17:01] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 16:17:01] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 16:17:01] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 16:17:01] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 16:17:01] [INFO] Redis 연결 성공 
+[2025-08-15 16:29:56] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 16:29:56] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 16:29:56] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 16:29:56] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 16:29:56] [INFO] Redis 연결 성공 
+[2025-08-15 16:34:27] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 16:34:27] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 16:34:27] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 16:34:27] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 16:34:27] [INFO] Redis 연결 성공 
+[2025-08-15 16:42:37] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 16:42:37] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 16:42:37] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 16:42:37] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 16:42:37] [INFO] Redis 연결 성공 
+[2025-08-15 16:50:02] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 16:50:02] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 16:50:02] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 16:50:02] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 16:50:02] [INFO] Redis 연결 성공 
+[2025-08-15 16:54:37] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 16:54:37] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 16:54:37] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 16:54:37] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 16:54:37] [INFO] Redis 연결 성공 
+[2025-08-15 17:02:39] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-15 17:02:39] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-15 17:02:39] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-15 17:02:39] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-15 17:02:39] [INFO] Redis 연결 성공 
+[2025-08-16 00:23:51] [INFO] 🚀 김프 봇 서버가 포트 3000에서 실행 중입니다. 
+[2025-08-16 00:23:51] [INFO] 📊 대시보드: http://localhost:3000 
+[2025-08-16 00:23:51] [INFO] 🔍 헬스체크: http://localhost:3000/health 
+[2025-08-16 00:23:51] [INFO] 🤖 봇 상태: http://localhost:3000/bot/status 
+[2025-08-16 00:23:51] [INFO] Redis 연결 성공 
